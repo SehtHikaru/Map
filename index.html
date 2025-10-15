@@ -27,6 +27,10 @@
       --bg:#0b132b; --panel:#1c2541; --muted:#3a506b; --accent:#5bc0be; --accent2:#ffd166; --text:#eaf2f8; --ok:#4caf50; --warn:#ff9800; --bad:#ef5350;
       --radius:18px;
     }
+    /* Tema claro */
+    body[data-theme="light"]{
+      --bg:#ffffff; --panel:#f4f6fb; --muted:#cbd5e1; --accent:#2563eb; --accent2:#f59e0b; --text:#1f2937; --ok:#10b981; --warn:#f59e0b; --bad:#ef4444;
+    }
     *{box-sizing:border-box}
     body{margin:0; font-family:system-ui,Segoe UI,Roboto,Arial; background:var(--bg); color:var(--text);}
     .app{display:grid; grid-template-columns:380px 1fr; min-height:100vh}
@@ -80,7 +84,10 @@
 <body>
 <div class="app">
   <aside>
-    <h1>🗺️ Mapa de problemas</h1>
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px">
+      <h1>🗺️ Mapa de problemas</h1>
+      <button id="themeToggle" class="btn btn-alt" title="Cambiar tema">🌙 Oscuro</button>
+    </div>
     <div class="subtitle">Agrega <b>waypoints</b>, dibuja áreas y clasifica cada reporte. Exporta/Importa en GeoJSON.</div>
 
     <div class="card">
@@ -245,7 +252,16 @@ let currentTheme = 'dark';
     'Seguridad':'#ef5350',
     'Vías':'#4caf50',
     'Ruido':'#a855f7',
-    'Otros':'#64748b'
+    'Otros':'#64748b',
+    // Categorías del proyecto
+    'Vendedores ambulantes':'#3b82f6',      // azul
+    'Ciclo ruta':'#ffd166',                  // amarillo
+    'Contaminación visual':'#a855f7',       // morado
+    'Casas en mal estado':'#ef5350',        // rojo
+    'Edificios en mal estado':'#ef5350',    // rojo
+    'Casas abandonadas':'#ef5350',          // rojo
+    'Señalización':'#22c55e',               // verde lima
+    'Calles en mal estado':'#4caf50'        // verde
   }[cat] || '#64748b');
 
   const sevClass = (sev)=>({ alta:'bad', media:'warn', baja:'ok' }[sev] || 'ok');
@@ -437,8 +453,20 @@ let currentTheme = 'dark';
     reader.readAsText(file);
   });
 
-  // Demo: marcador inicial
-  addMarker([4.6533, -74.0836], { categoria:'Basura', severidad:'alta', descripcion:'Acumulación de residuos cerca de parque' });
-</script>
-</body>
-</html>
+  // Carga inicial de puntos (colores por categoría)
+  const seed = [
+    { lat:4.64999, lng:-74.06294, nombre:'Entrevistas', categoria:'Otros', descripcion:'Se hacen entrevistas a personas que concurren por la zona y habitan en el sector.' },
+    { lat:4.64928, lng:-74.06354, nombre:'Vendedores ambulantes', categoria:'Vendedores ambulantes', descripcion:'Invasión de zona peatonal; dificultad para transitar con normalidad.' },
+    { lat:4.64837, lng:-74.06362, nombre:'Ciclo ruta', categoria:'Ciclo ruta', descripcion:'Invasión de la ciclorruta por peatones y espacio reducido.' },
+    { lat:4.64796, lng:-74.06375, nombre:'Ciclo ruta', categoria:'Ciclo ruta', descripcion:'Espacios reducidos debido a la ciclorruta.' },
+    { lat:4.65031, lng:-74.06347, nombre:'Contaminación visual', categoria:'Contaminación visual', descripcion:'Letreros en mal estado y exceso de publicidad.' },
+    { lat:4.64033, lng:-74.06260, nombre:'Casas en mal estado', categoria:'Casas en mal estado', descripcion:'Edificio en mal estado que genera inseguridad.' },
+    { lat:4.64403, lng:-74.06579, nombre:'Edificios en mal estado', categoria:'Edificios en mal estado', descripcion:'Estructuras con deterioro visible.' },
+    { lat:4.64275, lng:-74.06217, nombre:'Casas abandonadas', categoria:'Casas abandonadas', descripcion:'Con grafitis y en mal estado.' },
+    { lat:4.64036, lng:-74.06503, nombre:'Ciclo ruta', categoria:'Ciclo ruta', descripcion:'Conflictos de uso y paso.' },
+    { lat:4.64065, lng:-74.06622, nombre:'Señalización', categoria:'Señalización', descripcion:'Falta o deficiencia de señalización.' },
+    { lat:4.64257, lng:-74.06614, nombre:'Calles en mal estado', categoria:'Calles en mal estado', descripcion:'Calzada deteriorada.' },
+    { lat:4.64616, lng:-74.06547, nombre:'Edificios en mal estado', categoria:'Edificios en mal estado', descripcion:'Fisuras y desgaste de fachada.' },
+    { lat:4.64585, lng:-74.06406, nombre:'Vendedores ambulantes', categoria:'Vendedores ambulantes', descripcion:'Ocupación de andén.' }
+  ];
+  seed.forEach(p=> addMarker([p.lat, p.lng], { nombre:p.nombre, categoria:p.categoria, severidad:'media', descripcion:p.descripcion }));
