@@ -162,9 +162,14 @@
     zoom: 12,
     layers: [cartoDark]
   });
-  L.control.layers({ 'CARTO Dark': cartoDark, 'OSM': osm }).addTo(map);
+  const baseLayers = { 'CARTO Dark': cartoDark, 'OSM': osm };
+  L.control.layers(baseLayers).addTo(map);
 
-  // Geocoder y localizar
+  // Tema inicial
+document.body.setAttribute('data-theme','dark');
+let currentTheme = 'dark';
+
+// Geocoder y localizar
   const geocoder = L.Control.geocoder({ defaultMarkGeocode:false }).on('markgeocode', e => {
     map.fitBounds(e.geocode.bbox);
   }).addTo(map);
@@ -178,6 +183,23 @@
     return btn;
   }
   locateBtn.addTo(map);
+
+  // Toggle de tema claro/oscuro
+  document.getElementById('themeToggle').addEventListener('click', ()=>{
+    if(currentTheme==='dark'){
+      currentTheme='light';
+      document.body.setAttribute('data-theme','light');
+      if(map.hasLayer(cartoDark)) map.removeLayer(cartoDark);
+      if(!map.hasLayer(osm)) map.addLayer(osm);
+      document.getElementById('themeToggle').textContent='☀️ Claro';
+    }else{
+      currentTheme='dark';
+      document.body.setAttribute('data-theme','dark');
+      if(map.hasLayer(osm)) map.removeLayer(osm);
+      if(!map.hasLayer(cartoDark)) map.addLayer(cartoDark);
+      document.getElementById('themeToggle').textContent='🌙 Oscuro';
+    }
+  });
 
   // ======= Dibujo de áreas =======
   const drawnItems = new L.FeatureGroup();
@@ -198,7 +220,13 @@
   map.on(L.Draw.Event.CREATED, (e)=>{ drawnItems.addLayer(e.layer); });
 
   // ======= Clustering de marcadores =======
-  const cluster = L.markerClusterGroup({ disableClusteringAtZoom: 18 });
+  const cluster = L.markerClusterGroup({ 
+    disableClusteringAtZoom: 18,
+    showCoverageOnHover: false,
+    spiderfyOnEveryZoom: true,
+    spiderfyOnMaxZoom: true,
+    zoomToBoundsOnClick: true
+  });
   map.addLayer(cluster);
 
   // ======= Estado global =======
@@ -242,6 +270,8 @@
     cluster.addLayer(m);
     const entry = { marker: m, props };
     markers.push(entry);
+    // asegurar visibilidad inmediata (evita que "desaparezca" dentro de un clúster)
+    cluster.zoomToShowLayer(m, ()=>{ m.openPopup(); });
     return entry;
   }
 
@@ -340,7 +370,8 @@
 
   document.getElementById('addHere').onclick = ()=>{
     const center = map.getCenter();
-    addMarker([center.lat, center.lng], { categoria: form.categoria, severidad: form.severidad, descripcion: form.descripcion });
+    const { marker } = addMarker([center.lat, center.lng], { categoria: form.categoria, severidad: form.severidad, descripcion: form.descripcion });
+    cluster.zoomToShowLayer(marker, ()=>{ marker.openPopup(); });
   };
 
   map.on('click', (ev)=>{
