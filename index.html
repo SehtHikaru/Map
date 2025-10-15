@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mapa interactivo de problemas</title>
+  <title>Mapa interactivo — Problemas Urbanos</title>
 
   <!-- Leaflet core -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -14,70 +14,45 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
-  <!-- Leaflet.Draw (para polígonos / áreas) -->
+  <!-- Leaflet.Draw -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
   <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
 
-  <!-- Geocoder (buscar lugares) -->
+  <!-- Geocoder -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
   <style>
     :root{
-      --bg:#0b132b; --panel:#1c2541; --muted:#3a506b; --accent:#5bc0be; --accent2:#ffd166; --text:#eaf2f8; --ok:#4caf50; --warn:#ff9800; --bad:#ef5350;
-      --radius:18px;
+      --bg:#0b132b; --panel:#1c2541; --muted:#3a506b; --accent:#5bc0be; --accent2:#ffd166; --text:#eaf2f8;
+      --ok:#10b981; --warn:#f59e0b; --bad:#ef4444; --radius:18px;
     }
-    /* Tema claro */
     body[data-theme="light"]{
-      --bg:#ffffff; --panel:#f4f6fb; --muted:#cbd5e1; --accent:#2563eb; --accent2:#f59e0b; --text:#1f2937; --ok:#10b981; --warn:#f59e0b; --bad:#ef4444;
+      --bg:#ffffff; --panel:#f4f6fb; --muted:#cbd5e1; --accent:#2563eb; --accent2:#f59e0b; --text:#1f2937;
+      --ok:#10b981; --warn:#f59e0b; --bad:#ef4444;
     }
     *{box-sizing:border-box}
     body{margin:0; font-family:system-ui,Segoe UI,Roboto,Arial; background:var(--bg); color:var(--text);}
     .app{display:grid; grid-template-columns:380px 1fr; min-height:100vh}
-
-    /* Sidebar */
-    aside{
-      background:linear-gradient(180deg, var(--panel), #121a35);
-      padding:16px 16px 24px; border-right:1px solid #243057; position:relative;
-    }
-    h1{font-size:20px; margin:0 0 10px; letter-spacing:.2px}
-    .subtitle{opacity:.8; font-size:12px; margin-bottom:14px}
+    aside{background:linear-gradient(180deg, var(--panel), #121a35); padding:16px 16px 24px; border-right:1px solid #243057; position:relative}
+    h1{font-size:20px; margin:0; letter-spacing:.2px}
+    .subtitle{opacity:.85; font-size:12px; margin:8px 0 12px}
     .card{background:#0e1733; border:1px solid #223158; border-radius:var(--radius); padding:12px; margin-bottom:12px; box-shadow:0 6px 18px rgba(0,0,0,.25)}
     .row{display:grid; grid-template-columns:1fr 1fr; gap:8px}
-    label{font-size:12px; opacity:.85; display:block; margin:4px 0}
+    label{font-size:12px; opacity:.9; display:block; margin:4px 0}
     select, input[type="text"], textarea{width:100%; background:#0a132d; color:var(--text); border:1px solid #2b3a6a; border-radius:12px; padding:10px 12px; outline:none}
-    textarea{min-height:68px; resize:vertical}
-
+    textarea{min-height:64px; resize:vertical}
     .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 12px; border-radius:12px; border:1px solid transparent; cursor:pointer; font-weight:600}
     .btn-primary{background:var(--accent); color:#082327}
     .btn-alt{background:#0a132d; color:var(--text); border-color:#2b3a6a}
     .btn-danger{background:#2a0e12; color:#ffcdd2; border-color:#6b1d26}
     .btn:active{transform:translateY(1px)}
-
-    .chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px}
-    .chip{display:inline-flex; align-items:center; gap:6px; background:#0a132d; border:1px solid #2b3a6a; padding:6px 10px; border-radius:999px; font-size:12px}
-    .chip .dot{width:10px; height:10px; border-radius:50%}
-
-    /* Map */
-    #map{height:100vh; width:100%;}
-    .leaflet-control-geocoder{max-width:260px}
-
-    /* Marker icon (divIcon) */
-    .pin{position:relative; width:24px; height:24px; border-radius:50%; box-shadow:0 0 0 3px rgba(0,0,0,.25); display:grid; place-items:center; font-weight:700; color:white}
-    .pin::after{content:""; position:absolute; bottom:-6px; left:50%; transform:translateX(-50%); width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-top:8px solid currentColor; filter:brightness(.8)}
-    .pin.bad{background:var(--bad)}
-    .pin.warn{background:var(--warn); color:#201a00}
-    .pin.ok{background:var(--ok)}
-    .pin.blue{background:#3b82f6}
-    .pin.purple{background:#a855f7}
-    .pin.gray{background:#64748b}
-
+    .small{font-size:12px; opacity:.8}
+    #map{height:100vh; width:100%}
     .legend{display:flex; gap:8px; align-items:center; padding:6px 10px; background:#0a132d; border:1px solid #2b3a6a; border-radius:12px; box-shadow:0 6px 14px rgba(0,0,0,.25)}
     .legend .sw{width:12px; height:12px; border-radius:3px}
-
-    .footer{position:absolute; bottom:10px; left:16px; right:16px; display:flex; gap:8px; flex-wrap:wrap}
-    .small{font-size:12px; opacity:.75}
-
+    .pin{position:relative; width:24px; height:24px; border-radius:50%; box-shadow:0 0 0 3px rgba(0,0,0,.25); display:grid; place-items:center; color:white}
+    .pin::after{content:""; position:absolute; bottom:-6px; left:50%; transform:translateX(-50%); width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-top:8px solid currentColor; filter:brightness(.8)}
     @media (max-width: 980px){ .app{grid-template-columns:1fr} aside{order:2} #map{order:1; height:60vh} }
   </style>
 </head>
@@ -88,21 +63,30 @@
       <h1>🗺️ Mapa de problemas</h1>
       <button id="themeToggle" class="btn btn-alt" title="Cambiar tema">🌙 Oscuro</button>
     </div>
-    <div class="subtitle">Agrega <b>waypoints</b>, dibuja áreas y clasifica cada reporte. Exporta/Importa en GeoJSON.</div>
+    <div class="subtitle">Waypoints con <b>nombre</b> y <b>descripción</b>. Edición desde el panel lateral. Exporta/Importa GeoJSON.</div>
 
     <div class="card">
       <div class="row">
         <div>
+          <label>Nombre</label>
+          <input id="nombre" type="text" placeholder="Ej. Vendedores ambulantes" />
+        </div>
+        <div>
           <label>Categoría</label>
           <select id="categoria">
-            <option>Basura</option>
-            <option>Iluminación</option>
-            <option>Seguridad</option>
-            <option>Vías</option>
-            <option>Ruido</option>
+            <option>Vendedores ambulantes</option>
+            <option>Ciclo ruta</option>
+            <option>Contaminación visual</option>
+            <option>Casas en mal estado</option>
+            <option>Edificios en mal estado</option>
+            <option>Casas abandonadas</option>
+            <option>Señalización</option>
+            <option>Calles en mal estado</option>
             <option>Otros</option>
           </select>
         </div>
+      </div>
+      <div class="row" style="margin-top:8px">
         <div>
           <label>Severidad</label>
           <select id="severidad">
@@ -112,18 +96,25 @@
           </select>
         </div>
       </div>
-      <label>Descripción</label>
-      <textarea id="descripcion" placeholder="¿Qué pasa aquí?"></textarea>
-      <div class="row" style="margin-top:8px">
+      <label style="margin-top:6px">Descripción</label>
+      <textarea id="descripcion" placeholder="Añade una nota breve del problema"></textarea>
+
+      <div class="row" style="margin-top:10px">
         <button class="btn btn-alt" id="toggleAdd">➕ Modo añadir (clic en el mapa)</button>
         <button class="btn btn-primary" id="addHere">📍 Añadir aquí (centro)</button>
       </div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn btn-primary" id="btnUpdate">✏️ Actualizar seleccionado</button>
+        <button class="btn btn-danger" id="btnDelete">🗑️ Borrar seleccionado</button>
+      </div>
+      <div id="selInfo" class="small" style="margin-top:6px; opacity:.9">Ningún punto seleccionado</div>
     </div>
 
     <div class="card">
       <b>Filtros</b>
-      <div class="chips" id="chipsCategorias"></div>
-      <div class="chips" id="chipsEstado" style="margin-top:8px"></div>
+      <div class="small">Activa/desactiva para mostrar por tipo y estado.</div>
+      <div id="chipsCategorias" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px"></div>
+      <div id="chipsEstado" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px"></div>
     </div>
 
     <div class="card">
@@ -135,16 +126,16 @@
       </div>
     </div>
 
-    <div class="small">Consejos: usa la lupa para buscar sitios, el botón de ubicación para centrarte y las herramientas de dibujo para delimitar áreas problemáticas. Haz clic en un pin para editarlo, cambiar estado o borrarlo.</div>
+    <div class="small">Consejo: usa la lupa para buscar sitios, el botón de ubicación para centrarte y las herramientas de dibujo (polígonos/rectángulos) para delimitar áreas.</div>
 
-    <div class="footer">
+    <div style="position:absolute; bottom:10px; left:16px; right:16px; display:flex; gap:8px; flex-wrap:wrap">
       <div class="legend">
-        <span class="sw" style="background:#3b82f6"></span> Basura
-        <span class="sw" style="background:#ffd166"></span> Iluminación
-        <span class="sw" style="background:#ef5350"></span> Seguridad
-        <span class="sw" style="background:#4caf50"></span> Vías
-        <span class="sw" style="background:#a855f7"></span> Ruido
-        <span class="sw" style="background:#64748b"></span> Otros
+        <span class="sw" style="background:#3b82f6"></span> Vendedores
+        <span class="sw" style="background:#ffd166"></span> Ciclo ruta
+        <span class="sw" style="background:#a855f7"></span> Contam. visual
+        <span class="sw" style="background:#ef5350"></span> Casas/Edif. mal estado
+        <span class="sw" style="background:#22c55e"></span> Señalización
+        <span class="sw" style="background:#4caf50"></span> Calles
       </div>
     </div>
   </aside>
@@ -153,30 +144,26 @@
 </div>
 
 <script>
-  // ======= Basemaps =======
+  // ======= Capas base (oscuro y claro) =======
   const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 20,
-    attribution: '&copy; <a target="_blank" href="https://www.openstreetmap.org/copyright">OSM</a>'
+    maxZoom: 20, attribution: '&copy; <a target="_blank" href="https://www.openstreetmap.org/copyright">OSM</a>'
   });
   const cartoDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    maxZoom: 20,
-    attribution: '&copy; <a target="_blank" href="https://carto.com/attributions">CARTO</a> & OSM'
+    maxZoom: 20, attribution: '&copy; <a target="_blank" href="https://carto.com/attributions">CARTO</a> & OSM'
   });
 
-  // ======= Mapa =======
+  // ======= Inicializar mapa (tema oscuro por defecto) =======
+  document.body.setAttribute('data-theme','dark');
+  let currentTheme = 'dark';
+
   const map = L.map('map', {
-    center: [4.7110, -74.0721], // Bogotá como centro
+    center: [4.7110, -74.0721], // Bogotá (se reajustará a los puntos)
     zoom: 12,
     layers: [cartoDark]
   });
-  const baseLayers = { 'CARTO Dark': cartoDark, 'OSM': osm };
-  L.control.layers(baseLayers).addTo(map);
+  L.control.layers({ 'CARTO Dark': cartoDark, 'OSM': osm }).addTo(map);
 
-  // Tema inicial
-document.body.setAttribute('data-theme','dark');
-let currentTheme = 'dark';
-
-// Geocoder y localizar
+  // Geocoder y localizar
   const geocoder = L.Control.geocoder({ defaultMarkGeocode:false }).on('markgeocode', e => {
     map.fitBounds(e.geocode.bbox);
   }).addTo(map);
@@ -191,24 +178,7 @@ let currentTheme = 'dark';
   }
   locateBtn.addTo(map);
 
-  // Toggle de tema claro/oscuro
-  document.getElementById('themeToggle').addEventListener('click', ()=>{
-    if(currentTheme==='dark'){
-      currentTheme='light';
-      document.body.setAttribute('data-theme','light');
-      if(map.hasLayer(cartoDark)) map.removeLayer(cartoDark);
-      if(!map.hasLayer(osm)) map.addLayer(osm);
-      document.getElementById('themeToggle').textContent='☀️ Claro';
-    }else{
-      currentTheme='dark';
-      document.body.setAttribute('data-theme','dark');
-      if(map.hasLayer(osm)) map.removeLayer(osm);
-      if(!map.hasLayer(cartoDark)) map.addLayer(cartoDark);
-      document.getElementById('themeToggle').textContent='🌙 Oscuro';
-    }
-  });
-
-  // ======= Dibujo de áreas =======
+  // ======= Controles de dibujo de áreas =======
   const drawnItems = new L.FeatureGroup();
   map.addLayer(drawnItems);
   const drawControl = new L.Control.Draw({
@@ -226,8 +196,8 @@ let currentTheme = 'dark';
   map.addControl(drawControl);
   map.on(L.Draw.Event.CREATED, (e)=>{ drawnItems.addLayer(e.layer); });
 
-  // ======= Clustering de marcadores =======
-  const cluster = L.markerClusterGroup({ 
+  // ======= Cluster =======
+  const cluster = L.markerClusterGroup({
     disableClusteringAtZoom: 18,
     showCoverageOnHover: false,
     spiderfyOnEveryZoom: true,
@@ -238,22 +208,17 @@ let currentTheme = 'dark';
 
   // ======= Estado global =======
   const form = {
+    get nombre(){ return document.getElementById('nombre').value.trim(); },
     get categoria(){ return document.getElementById('categoria').value; },
     get severidad(){ return document.getElementById('severidad').value; },
     get descripcion(){ return document.getElementById('descripcion').value.trim(); }
-  }
+  };
   let addMode = false;
-  const markers = []; // [{ marker, props }]
+  let selected = null; // { marker, props }
+  const markers = [];  // [{ marker, props }]
 
-  // ======= Iconos según categoría / severidad =======
+  // ======= Colores por categoría =======
   const catColor = (cat)=>({
-    'Basura':'#3b82f6',
-    'Iluminación':'#ffd166',
-    'Seguridad':'#ef5350',
-    'Vías':'#4caf50',
-    'Ruido':'#a855f7',
-    'Otros':'#64748b',
-    // Categorías del proyecto
     'Vendedores ambulantes':'#3b82f6',      // azul
     'Ciclo ruta':'#ffd166',                  // amarillo
     'Contaminación visual':'#a855f7',       // morado
@@ -261,96 +226,74 @@ let currentTheme = 'dark';
     'Edificios en mal estado':'#ef5350',    // rojo
     'Casas abandonadas':'#ef5350',          // rojo
     'Señalización':'#22c55e',               // verde lima
-    'Calles en mal estado':'#4caf50'        // verde
+    'Calles en mal estado':'#4caf50',       // verde
+    'Otros':'#64748b'
   }[cat] || '#64748b');
 
   const sevClass = (sev)=>({ alta:'bad', media:'warn', baja:'ok' }[sev] || 'ok');
 
   function makeIcon(cat, sev){
     const color = catColor(cat);
-    const sevC = sevClass(sev);
-    const html = `<div class="pin ${sevC}" style="background:${color}; color:${color}"><span style="filter:invert(1); color:white;">•</span></div>`;
+    const html = `<div class="pin" style="background:${color}; color:${color}"><span style="filter:invert(1); color:white;">•</span></div>`;
     return L.divIcon({ className:'', html, iconSize:[24,30], iconAnchor:[12,28], popupAnchor:[0,-20] });
   }
 
-  // ======= Crear marcador =======
-  function addMarker(latlng, {categoria, severidad, descripcion}){
+  function makePopupHTML(p){
+    // Popups limpios: solo nombre + descripción
+    return `
+      <div style="font:14px system-ui">
+        <b style="display:block; margin-bottom:4px">${p.nombre || 'Sin título'}</b>
+        <div style="opacity:.9; white-space:pre-wrap;">${(p.descripcion || '—')}</div>
+      </div>`;
+  }
+
+  function selectMarker(entry){
+    selected = entry;
+    const { props } = entry;
+    // Mostrar selección en panel
+    document.getElementById('selInfo').textContent = `Seleccionado: ${props.nombre} — ${props.categoria}`;
+    // Rellenar formulario para editar rápido (no abre popup)
+    document.getElementById('nombre').value = props.nombre || '';
+    document.getElementById('categoria').value = props.categoria || 'Otros';
+    document.getElementById('severidad').value = props.severidad || 'media';
+    document.getElementById('descripcion').value = props.descripcion || '';
+  }
+
+  function addMarker(latlng, {nombre, categoria, severidad, descripcion}){
     const props = {
+      nombre: nombre || 'Sin título',
       categoria, severidad, descripcion,
       estado: 'pendiente',
       createdAt: new Date().toISOString()
     };
     const m = L.marker(latlng, { icon: makeIcon(props.categoria, props.severidad) });
     m.bindPopup(makePopupHTML(props), { maxWidth: 280 });
-    m.on('popupopen', ()=> attachPopupHandlers(m, props));
     cluster.addLayer(m);
     const entry = { marker: m, props };
     markers.push(entry);
-    // asegurar visibilidad inmediata (evita que "desaparezca" dentro de un clúster)
-    cluster.zoomToShowLayer(m, ()=>{ m.openPopup(); });
+    m.on('click', ()=> selectMarker(entry));
     return entry;
   }
 
-  function makePopupHTML(p){
-    return `
-      <div style="font: 14px system-ui">
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px">
-          <b>${p.categoria}</b>
-          <span class="chip"><span class="dot" style="background:${catColor(p.categoria)}"></span>${p.severidad}</span>
-        </div>
-        <div style="opacity:.9; white-space:pre-wrap;">${(p.descripcion||'—')}</div>
-        <div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap">
-          <button class="btn btn-primary" data-act="edit">✏️ Editar</button>
-          <button class="btn btn-alt" data-act="estado">🔄 Estado: ${p.estado}</button>
-          <button class="btn btn-danger" data-act="del">🗑️ Borrar</button>
-        </div>
-      </div>`;
-  }
-
-  function attachPopupHandlers(marker, props){
-    const container = marker.getPopup().getElement();
-    if(!container) return;
-    container.querySelector('[data-act="edit"]').onclick = ()=>{
-      const c = prompt('Categoría (Basura, Iluminación, Seguridad, Vías, Ruido, Otros):', props.categoria) || props.categoria;
-      const s = prompt('Severidad (alta, media, baja):', props.severidad) || props.severidad;
-      const d = prompt('Descripción:', props.descripcion) ?? props.descripcion;
-      props.categoria = c; props.severidad = s; props.descripcion = d;
-      marker.setIcon(makeIcon(c, s));
-      marker.setPopupContent(makePopupHTML(props));
-      marker.openPopup();
-      applyFilters();
-    };
-    container.querySelector('[data-act="estado"]').onclick = ()=>{
-      props.estado = (props.estado === 'pendiente') ? 'en progreso' : (props.estado === 'en progreso' ? 'resuelto' : 'pendiente');
-      marker.setPopupContent(makePopupHTML(props));
-      marker.openPopup();
-      applyFilters();
-    };
-    container.querySelector('[data-act="del"]').onclick = ()=>{
-      cluster.removeLayer(marker);
-      const idx = markers.findIndex(x=>x.marker===marker);
-      if(idx>-1) markers.splice(idx,1);
-    };
-  }
-
-  // ======= UI: chips de filtro =======
-  const CATEGORIAS = ['Basura','Iluminación','Seguridad','Vías','Ruido','Otros'];
+  // ======= Filtros =======
+  const CATEGORIAS = [
+    'Vendedores ambulantes','Ciclo ruta','Contaminación visual',
+    'Casas en mal estado','Edificios en mal estado','Casas abandonadas',
+    'Señalización','Calles en mal estado','Otros'
+  ];
   const ESTADOS = ['pendiente','en progreso','resuelto'];
-  const chipsCategorias = document.getElementById('chipsCategorias');
-  const chipsEstado = document.getElementById('chipsEstado');
   const activeFilters = { categorias: new Set(CATEGORIAS), estados: new Set(ESTADOS) };
 
   function renderChips(){
+    const chipsCategorias = document.getElementById('chipsCategorias');
+    const chipsEstado = document.getElementById('chipsEstado');
     chipsCategorias.innerHTML = CATEGORIAS.map(c=>`
-      <label class="chip" style="cursor:pointer">
-        <input type="checkbox" data-cat="${c}" ${activeFilters.categorias.has(c)?'checked':''} />
-        <span class="dot" style="background:${catColor(c)}"></span>${c}
+      <label class="btn btn-alt" style="gap:6px">
+        <input type="checkbox" data-cat="${c}" ${activeFilters.categorias.has(c)?'checked':''} /> ${c}
       </label>`).join('');
-
     chipsEstado.innerHTML = ESTADOS.map(e=>`
-      <label class="chip" style="cursor:pointer">
-        <input type="checkbox" data-est="${e}" ${activeFilters.estados.has(e)?'checked':''} />
-        ${e}
+      <label class="btn btn-alt" style="gap:6px">
+        <input type="checkbox" data-est="${e}" ${activeFilters.estados.has(e)?'checked':''} /> ${e}
       </label>`).join('');
 
     chipsCategorias.querySelectorAll('input[type="checkbox"]').forEach(cb=>{
@@ -366,39 +309,71 @@ let currentTheme = 'dark';
       });
     });
   }
-  renderChips();
-
   function applyFilters(){
-    // reconstruir cluster para que respete ocultamientos
     cluster.clearLayers();
     markers.forEach(({marker, props})=>{
       const ok = activeFilters.categorias.has(props.categoria) && activeFilters.estados.has(props.estado);
       if(ok) cluster.addLayer(marker);
     });
   }
+  renderChips();
 
   // ======= Eventos UI =======
+  document.getElementById('themeToggle').addEventListener('click', ()=>{
+    if(currentTheme==='dark'){
+      currentTheme='light';
+      document.body.setAttribute('data-theme','light');
+      if(map.hasLayer(cartoDark)) map.removeLayer(cartoDark);
+      if(!map.hasLayer(osm)) map.addLayer(osm);
+      document.getElementById('themeToggle').textContent='☀️ Claro';
+    }else{
+      currentTheme='dark';
+      document.body.setAttribute('data-theme','dark');
+      if(map.hasLayer(osm)) map.removeLayer(osm);
+      if(!map.hasLayer(cartoDark)) map.addLayer(cartoDark);
+      document.getElementById('themeToggle').textContent='🌙 Oscuro';
+    }
+  });
+
   document.getElementById('toggleAdd').onclick = (e)=>{
     addMode = !addMode;
     e.target.textContent = addMode ? '✅ Añadir: ACTIVADO (clic en el mapa)' : '➕ Modo añadir (clic en el mapa)';
     e.target.className = addMode ? 'btn btn-primary' : 'btn btn-alt';
   };
-
   document.getElementById('addHere').onclick = ()=>{
-    const center = map.getCenter();
-    const { marker } = addMarker([center.lat, center.lng], { categoria: form.categoria, severidad: form.severidad, descripcion: form.descripcion });
-    cluster.zoomToShowLayer(marker, ()=>{ marker.openPopup(); });
+    const c = map.getCenter();
+    const entry = addMarker([c.lat, c.lng], { nombre: form.nombre, categoria: form.categoria, severidad: form.severidad, descripcion: form.descripcion });
+    cluster.zoomToShowLayer(entry.marker, ()=>{ entry.marker.openPopup(); selectMarker(entry); });
+  };
+  document.getElementById('btnUpdate').onclick = ()=>{
+    if(!selected){ alert('Selecciona un punto (clic en un pin)'); return; }
+    const p = selected.props;
+    p.nombre = form.nombre || p.nombre;
+    p.categoria = form.categoria || p.categoria;
+    p.severidad = form.severidad || p.severidad;
+    p.descripcion = form.descripcion || p.descripcion;
+    selected.marker.setIcon(makeIcon(p.categoria, p.severidad));
+    selected.marker.setPopupContent(makePopupHTML(p));
+    applyFilters();
+  };
+  document.getElementById('btnDelete').onclick = ()=>{
+    if(!selected){ alert('No hay punto seleccionado'); return; }
+    cluster.removeLayer(selected.marker);
+    const idx = markers.findIndex(x=>x===selected);
+    if(idx>-1) markers.splice(idx,1);
+    selected = null;
+    document.getElementById('selInfo').textContent = 'Ningún punto seleccionado';
   };
 
   map.on('click', (ev)=>{
     if(!addMode) return;
-    addMarker(ev.latlng, { categoria: form.categoria, severidad: form.severidad, descripcion: form.descripcion });
+    const entry = addMarker(ev.latlng, { nombre: form.nombre, categoria: form.categoria, severidad: form.severidad, descripcion: form.descripcion });
+    cluster.zoomToShowLayer(entry.marker, ()=>{ entry.marker.openPopup(); selectMarker(entry); });
   });
 
-  // ======= Export / Import =======
+  // Export / Import
   document.getElementById('btnExport').onclick = ()=>{
     const features = [];
-    // markers
     markers.forEach(({marker, props})=>{
       const ll = marker.getLatLng();
       features.push({
@@ -407,7 +382,6 @@ let currentTheme = 'dark';
         properties:{ ...props, _type:'marker' }
       });
     });
-    // drawn shapes
     const drawn = drawnItems.toGeoJSON();
     drawn.features.forEach(f=>{ f.properties = { ...(f.properties||{}), _type:'shape' }; });
 
@@ -418,7 +392,6 @@ let currentTheme = 'dark';
     a.download = 'mapa-problemas.geojson';
     a.click();
   };
-
   document.getElementById('fileImport').addEventListener('change', (e)=>{
     const file = e.target.files[0]; if(!file) return;
     const reader = new FileReader();
@@ -426,19 +399,18 @@ let currentTheme = 'dark';
       try{
         const data = JSON.parse(reader.result);
         // limpiar actuales
-        cluster.clearLayers();
-        markers.splice(0, markers.length);
-        drawnItems.clearLayers();
-
+        cluster.clearLayers(); markers.splice(0, markers.length); drawnItems.clearLayers();
         (data.features||[]).forEach(f=>{
           const t = (f.properties && f.properties._type) || (f.geometry && f.geometry.type === 'Point' ? 'marker' : 'shape');
           if(t==='marker' && f.geometry && f.geometry.type==='Point'){
             const [lng, lat] = f.geometry.coordinates;
-            addMarker([lat, lng], {
+            const entry = addMarker([lat, lng], {
+              nombre: f.properties?.nombre || 'Sin título',
               categoria: f.properties?.categoria || 'Otros',
               severidad: f.properties?.severidad || 'media',
               descripcion: f.properties?.descripcion || ''
-            }).props.estado = f.properties?.estado || 'pendiente';
+            });
+            entry.props.estado = f.properties?.estado || 'pendiente';
           } else if (t==='shape') {
             const lyr = L.geoJSON(f, { style:{ color:'#5bc0be' } });
             lyr.eachLayer(l=> drawnItems.addLayer(l));
@@ -453,20 +425,43 @@ let currentTheme = 'dark';
     reader.readAsText(file);
   });
 
-  // Carga inicial de puntos (colores por categoría)
+  // ======= Semilla: puntos integrados (colores por categoría) =======
   const seed = [
-    { lat:4.64999, lng:-74.06294, nombre:'Entrevistas', categoria:'Otros', descripcion:'Se hacen entrevistas a personas que concurren por la zona y habitan en el sector.' },
-    { lat:4.64928, lng:-74.06354, nombre:'Vendedores ambulantes', categoria:'Vendedores ambulantes', descripcion:'Invasión de zona peatonal; dificultad para transitar con normalidad.' },
-    { lat:4.64837, lng:-74.06362, nombre:'Ciclo ruta', categoria:'Ciclo ruta', descripcion:'Invasión de la ciclorruta por peatones y espacio reducido.' },
-    { lat:4.64796, lng:-74.06375, nombre:'Ciclo ruta', categoria:'Ciclo ruta', descripcion:'Espacios reducidos debido a la ciclorruta.' },
-    { lat:4.65031, lng:-74.06347, nombre:'Contaminación visual', categoria:'Contaminación visual', descripcion:'Letreros en mal estado y exceso de publicidad.' },
-    { lat:4.64033, lng:-74.06260, nombre:'Casas en mal estado', categoria:'Casas en mal estado', descripcion:'Edificio en mal estado que genera inseguridad.' },
-    { lat:4.64403, lng:-74.06579, nombre:'Edificios en mal estado', categoria:'Edificios en mal estado', descripcion:'Estructuras con deterioro visible.' },
-    { lat:4.64275, lng:-74.06217, nombre:'Casas abandonadas', categoria:'Casas abandonadas', descripcion:'Con grafitis y en mal estado.' },
-    { lat:4.64036, lng:-74.06503, nombre:'Ciclo ruta', categoria:'Ciclo ruta', descripcion:'Conflictos de uso y paso.' },
-    { lat:4.64065, lng:-74.06622, nombre:'Señalización', categoria:'Señalización', descripcion:'Falta o deficiencia de señalización.' },
-    { lat:4.64257, lng:-74.06614, nombre:'Calles en mal estado', categoria:'Calles en mal estado', descripcion:'Calzada deteriorada.' },
-    { lat:4.64616, lng:-74.06547, nombre:'Edificios en mal estado', categoria:'Edificios en mal estado', descripcion:'Fisuras y desgaste de fachada.' },
-    { lat:4.64585, lng:-74.06406, nombre:'Vendedores ambulantes', categoria:'Vendedores ambulantes', descripcion:'Ocupación de andén.' }
+    { lat:4.64999, lng:-74.06294, nombre:'Entrevistas', categoria:'Otros',
+      descripcion:'Se hacen entrevistas a personas que concurren por la zona y habitan en el sector.' },
+    { lat:4.64928, lng:-74.06354, nombre:'Vendedores ambulantes', categoria:'Vendedores ambulantes',
+      descripcion:'Invasión de zona peatonal; dificultad para transitar con normalidad.' },
+    { lat:4.64837, lng:-74.06362, nombre:'Ciclo ruta', categoria:'Ciclo ruta',
+      descripcion:'Invasión de la ciclorruta por peatones y espacio reducido.' },
+    { lat:4.64796, lng:-74.06375, nombre:'Ciclo ruta', categoria:'Ciclo ruta',
+      descripcion:'Espacios reducidos debido a la ciclorruta.' },
+    { lat:4.65031, lng:-74.06347, nombre:'Contaminación visual', categoria:'Contaminación visual',
+      descripcion:'Letreros en mal estado y exceso de publicidad.' },
+    { lat:4.64033, lng:-74.06260, nombre:'Casas en mal estado', categoria:'Casas en mal estado',
+      descripcion:'Edificio en mal estado que genera inseguridad.' },
+    { lat:4.64403, lng:-74.06579, nombre:'Edificios en mal estado', categoria:'Edificios en mal estado',
+      descripcion:'Estructuras con deterioro visible.' },
+    { lat:4.64275, lng:-74.06217, nombre:'Casas abandonadas', categoria:'Casas abandonadas',
+      descripcion:'Con grafitis y en mal estado.' },
+    { lat:4.64036, lng:-74.06503, nombre:'Ciclo ruta', categoria:'Ciclo ruta',
+      descripcion:'Conflictos de uso y paso.' },
+    { lat:4.64065, lng:-74.06622, nombre:'Señalización', categoria:'Señalización',
+      descripcion:'Falta o deficiencia de señalización.' },
+    { lat:4.64257, lng:-74.06614, nombre:'Calles en mal estado', categoria:'Calles en mal estado',
+      descripcion:'Calzada deteriorada.' },
+    { lat:4.64616, lng:-74.06547, nombre:'Edificios en mal estado', categoria:'Edificios en mal estado',
+      descripcion:'Fisuras y desgaste de fachada.' },
+    { lat:4.64585, lng:-74.06406, nombre:'Vendedores ambulantes', categoria:'Vendedores ambulantes',
+      descripcion:'Ocupación de andén.' }
   ];
-  seed.forEach(p=> addMarker([p.lat, p.lng], { nombre:p.nombre, categoria:p.categoria, severidad:'media', descripcion:p.descripcion }));
+
+  const bounds = [];
+  seed.forEach(p=>{
+    const e = addMarker([p.lat, p.lng], { nombre:p.nombre, categoria:p.categoria, severidad:'media', descripcion:p.descripcion });
+    bounds.push([p.lat, p.lng]);
+  });
+  // Ajuste automático al conjunto de puntos (Opción A)
+  if(bounds.length){ map.fitBounds(bounds, { padding:[30,30] }); }
+</script>
+</body>
+</html>
